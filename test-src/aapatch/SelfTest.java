@@ -34,6 +34,12 @@ public final class SelfTest {
         app.children.add(act);
         app.children.add(el("activity", "name", "org.other.Full"));
         app.children.add(el("provider", "name", ".Files", "authorities", "org.demo.player.files;com.thirdparty.cp"));
+        // provider whose authority is a resource reference (@string/...), like VLC's TV search provider
+        Axml.Element refProv = el("provider", "name", "org.demo.player.TvSearch");
+        Axml.Attr ref = new Axml.Attr(Axml.ANDROID_NS, "authorities", 0x01010018);
+        ref.type = Axml.TYPE_REFERENCE; ref.data = 0x7f0f0123;
+        refProv.attrs.add(ref);
+        app.children.add(refProv);
         m.children.add(app);
         d.root = m;
 
@@ -62,6 +68,10 @@ public final class SelfTest {
         check(oact.child("meta-data") != null && oact.child("meta-data").android("value").type == Axml.TYPE_BOOLEAN, "distractionOptimized boolean meta-data");
         check(oapp.android("appCategory").data == 0 && oapp.android("appCategory").resId == 0x01010545, "appCategory=game with correct resource id");
         check(oapp.android("resizeableActivity").data == -1, "resizeableActivity=true");
+
+        Axml.Attr ra = oapp.children("provider").get(1).android("authorities");
+        check(ra.isString() && ra.str.equals("org.demo.player.aa.auth7f0f0123"), "reference authority replaced by unique literal -> " + ra.str);
+        check(r.notes.size() == 1, "note emitted for reference authority");
 
         // idempotent round trip of the written file
         check(Axml.dump(o).equals(Axml.dump(Axml.parse(Axml.write(o)))), "write/parse round trip is lossless");

@@ -68,7 +68,7 @@ public final class ManifestPatcher {
         // Split APKs (config splits) may legitimately have no <application>; they only need the package rename.
 
         if (rename) {
-            renameEverything(manifest, res.oldPackage, res.newPackage);
+            renameEverything(manifest, res.oldPackage, res.newPackage, res.notes);
             pkgAttr.str = res.newPackage;
             manifest.removeAndroid("sharedUserId");
             manifest.removeAndroid("sharedUserLabel");
@@ -108,7 +108,7 @@ public final class ManifestPatcher {
 
     // ------------------------------------------------------------------ renaming
 
-    private static void renameEverything(Axml.Element manifest, String oldPkg, String newPkg) {
+    private static void renameEverything(Axml.Element manifest, String oldPkg, String newPkg, List<String> notes) {
         walk(manifest, e -> {
             if (COMPONENTS.contains(e.name)) {
                 for (String a : CLASS_ATTRS) {
@@ -119,7 +119,17 @@ public final class ManifestPatcher {
             }
             if (e.name.equals("provider")) {
                 Axml.Attr au = e.android("authorities");
-                if (au != null && au.isString()) au.str = renameAuthorities(au.str, oldPkg, newPkg);
+                if (au != null && au.isString()) {
+                    au.str = renameAuthorities(au.str, oldPkg, newPkg);
+                } else if (au != null) {
+                    // Authority given as a resource reference (@string/...): its value lives in resources.arsc,
+                    // shared with the original app, so it would collide (INSTALL_FAILED_CONFLICTING_PROVIDER).
+                    // Replace it with a literal that is unique to this copy.
+                    au.type = Axml.TYPE_STRING;
+                    au.str = newPkg + ".auth" + String.format("%08x", au.data);
+                    au.data = 0;
+                    notes.add("Provider authority was a resource reference; replaced by literal " + au.str);
+                }
             }
             if (PERMISSION_ELEMENTS.contains(e.name)) renamePermission(e.android("name"), oldPkg, newPkg);
         });
