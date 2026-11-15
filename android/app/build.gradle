@@ -1,0 +1,39 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'dev.aapatch.app'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'dev.aapatch.app'
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName '0.1.0'
+    }
+
+    buildTypes {
+        release { minifyEnabled false }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    sourceSets {
+        main {
+            // The patcher core is shared with the desktop CLI: one copy of the code.
+            java {
+                srcDir '../../src'
+                exclude 'aapatch/Cli.java'
+                exclude 'aapatch/Dump.java'
+            }
+        }
+    }
+
+    lint { abortOnError false }
+}
+// No third-party dependencies on purpose.
