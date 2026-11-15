@@ -4,6 +4,9 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,3 +25,13 @@ jobs:
         with:
           name: AAPatcher-debug-apk
           path: android/app/build/outputs/apk/debug/*.apk
+      - name: Publicar APK en Releases
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk AAPatcher.apk
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest AAPatcher.apk --target "$GITHUB_SHA" \
+            --title "AA Patcher (último build)" \
+            --notes "APK debug generado automáticamente en cada push."
