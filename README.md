@@ -12,6 +12,14 @@ Dos partes que comparten el mismo código:
 3. Toca una app de la lista -> opciones -> "Parchear e instalar" -> confirma el diálogo del sistema.
 4. En Android Auto: modo desarrollador (tocar 10 veces en la versión) y activar "Fuentes desconocidas". Busca la app con el sufijo "(AA)".
 
+### Pestaña "GitHub (originales)"
+Descarga el APK **oficial y sin modificar** de la última versión de un repositorio de GitHub (por ejemplo `AndreyPavlenko/Fermata`) y pide a Android que registre Google Play como instalador (`SessionParams.setInstallerPackageName`, API pública desde Android 14).
+Al terminar muestra el **origen que Android registró de verdad**, para comprobar si la petición se respetó.
+- Mantiene paquete y firma originales: el inicio de sesión de Google sigue funcionando.
+- Solo sirve para apps que **ya declaran soporte de Android Auto** (Fermata, CarStream…). Una app normal (YouTube) no aparecerá en el coche sin parchearla.
+- Puedes escribir cualquier `propietario/repositorio`; el catálogo base está en `android/app/src/main/assets/catalog.json`.
+- En Android 13 o inferior no se puede simular el origen sin root.
+
 **Estado:** el código de la app Android **no se ha compilado ni probado** (el entorno donde lo escribí no tiene el SDK de Android). El núcleo sí está probado (ver abajo).
 Si el compilador marca algo, probablemente sea un detalle menor de API; pega el error y lo arreglo.
 

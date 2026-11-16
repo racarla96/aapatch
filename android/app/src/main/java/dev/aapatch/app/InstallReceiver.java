@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInstaller;
+import android.content.pm.PackageManager;
 import android.os.Build;
 
 /** Receives the PackageInstaller result: asks the user to confirm, then reports success or failure. */
@@ -22,11 +23,29 @@ public class InstallReceiver extends BroadcastReceiver {
                 }
                 break;
             }
-            case PackageInstaller.STATUS_SUCCESS:
-                Installer.report("Instalada. Conecta el móvil a Android Auto y busca la app con el sufijo (AA).");
+            case PackageInstaller.STATUS_SUCCESS: {
+                String pkg = intent.getStringExtra(PackageInstaller.EXTRA_PACKAGE_NAME);
+                Installer.report("Instalada: " + pkg + "\nOrigen registrado por Android: " + installerOf(context, pkg)
+                        + "\n(Si dice com.android.vending, Android Auto la verá como instalada desde Play Store.)");
                 break;
+            }
             default:
                 Installer.report("No se pudo instalar (código " + status + "): " + message);
+        }
+    }
+
+    /** Which app Android recorded as the installer of {@code pkg} (null if none). */
+    @SuppressWarnings("deprecation")
+    private static String installerOf(Context c, String pkg) {
+        if (pkg == null) return "?";
+        try {
+            PackageManager pm = c.getPackageManager();
+            String s = Build.VERSION.SDK_INT >= 30
+                    ? pm.getInstallSourceInfo(pkg).getInstallingPackageName()
+                    : pm.getInstallerPackageName(pkg);
+            return s == null ? "(ninguno)" : s;
+        } catch (Exception e) {
+            return "?";
         }
     }
 

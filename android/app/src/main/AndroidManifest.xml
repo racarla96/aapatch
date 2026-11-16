@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Install the patched copy (the user must allow "install unknown apps" for this app once). -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <!-- List the apps installed on the phone so one can be picked. -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />

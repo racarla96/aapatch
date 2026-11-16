@@ -19,6 +19,7 @@ final class Installer {
     private Installer() {}
 
     static final String ACTION = "dev.aapatch.app.INSTALL_STATUS";
+    static final String PLAY_STORE = "com.android.vending";
 
     /** Set by the visible activity so install results can be shown in the UI. */
     static volatile Consumer<String> statusSink;
@@ -28,10 +29,25 @@ final class Installer {
         if (s != null) s.accept(message);
     }
 
-    static void install(Context ctx, List<File> apks) throws IOException {
+    /**
+     * @param claimPlayStore ask Android to record Google Play as the installer of this app
+     *                       (public API since Android 14; on older versions it cannot be done without root).
+     */
+    static void install(Context ctx, List<File> apks, boolean claimPlayStore) throws IOException {
         PackageInstaller pi = ctx.getPackageManager().getPackageInstaller();
         PackageInstaller.SessionParams params =
                 new PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL);
+        if (claimPlayStore) {
+            if (Build.VERSION.SDK_INT >= 34) {
+                try {
+                    params.setInstallerPackageName(PLAY_STORE);
+                } catch (RuntimeException e) {
+                    report("No se pudo fijar el origen de instalación: " + e);
+                }
+            } else {
+                report("Android " + Build.VERSION.RELEASE + ": no se puede simular el origen sin root; se instala con origen normal.");
+            }
+        }
         int id = pi.createSession(params);
         try (PackageInstaller.Session session = pi.openSession(id)) {
             byte[] buf = new byte[1 << 16];
