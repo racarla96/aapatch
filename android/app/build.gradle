@@ -10,8 +10,21 @@ android {
         applicationId 'dev.aapatch.app'
         minSdk 26
         targetSdk 35
-        versionCode 1
-        versionName '0.1.0'
+        // CI: every build gets a higher version, so each one installs over the previous one.
+        def run = (System.getenv('GITHUB_RUN_NUMBER') ?: '1').toInteger()
+        versionCode run
+        versionName "0.3.${run}"
+    }
+
+    // Fixed debug key (committed on purpose): without it every CI run signs with a fresh random key
+    // and Android refuses to install the new APK over the old one.
+    signingConfigs {
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
     }
 
     buildTypes {

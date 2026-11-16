@@ -33,5 +33,5 @@ jobs:
           cp android/app/build/outputs/apk/debug/app-debug.apk AAPatcher.apk
           gh release delete latest --yes --cleanup-tag || true
           gh release create latest AAPatcher.apk --target "$GITHUB_SHA" \
-            --title "AA Patcher (último build)" \
+            --title "AA Patcher build $GITHUB_RUN_NUMBER" \
             --notes "APK debug generado automáticamente en cada push."
