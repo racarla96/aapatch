@@ -48,7 +48,14 @@ final class Installer {
                 report("Android " + Build.VERSION.RELEASE + ": no se puede simular el origen sin root; se instala con origen normal.");
             }
         }
-        int id = pi.createSession(params);
+        int id;
+        try {
+            id = pi.createSession(params);
+        } catch (SecurityException e) {
+            // Android only lets system installers (or Play itself) name another package as installer.
+            report("Android no permite simular Play Store desde una app normal; se instala con origen normal.");
+            id = pi.createSession(new PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL));
+        }
         try (PackageInstaller.Session session = pi.openSession(id)) {
             byte[] buf = new byte[1 << 16];
             for (File f : apks) {
