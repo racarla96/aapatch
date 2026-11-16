@@ -34,7 +34,10 @@ public final class ManifestPatcher {
         public String label;
         public boolean injectCarLauncher = true;
         public boolean injectDistractionOptimized = true;
+        /** When true, sets android:appCategory to {@link #appCategory}. */
         public boolean injectGameCategory = true;
+        /** android:appCategory value: 0 game, 1 audio, 2 video, 3 image, 4 social, 5 news, 6 maps, 7 productivity, 8 accessibility. */
+        public int appCategory = CATEGORY_GAME;
         public boolean makeResizeable = true;
     }
 
@@ -88,7 +91,7 @@ public final class ManifestPatcher {
             for (Axml.Element a : launchers) if (a.android("label") != null) a.setAndroidString("label", ATTR_LABEL, cfg.label);
         }
         if (cfg.makeResizeable) app.setAndroidBool("resizeableActivity", ATTR_RESIZEABLE, true);
-        if (cfg.injectGameCategory) app.setAndroidInt("appCategory", ATTR_APP_CATEGORY, CATEGORY_GAME);
+        if (cfg.injectGameCategory) app.setAndroidInt("appCategory", ATTR_APP_CATEGORY, cfg.appCategory);
 
         for (Axml.Element activity : launchers) {
             if (cfg.injectCarLauncher) {

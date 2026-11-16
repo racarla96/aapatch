@@ -225,18 +225,43 @@ public class MainActivity extends Activity {
         final String[] names = {
                 "Añadir lanzador de coche (CAR_LAUNCHER)",
                 "Marcar como optimizada para conducir",
-                "Categoría \"juego\"",
                 "Permitir redimensionar"};
-        final boolean[] checked = {true, true, true, true};
+        final boolean[] checked = {true, true, true};
+        // Values of android:appCategory; index 0 of the spinner = leave the app's own category untouched.
+        final String[] catNames = {"(no cambiar)", "Juego", "Audio / música", "Vídeo", "Imagen", "Social",
+                "Noticias", "Mapas / navegación", "Productividad", "Accesibilidad"};
+        final int[] catValues = {-100, 0, 1, 2, 3, 4, 5, 6, 7, 8};
+
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(dp(20), dp(8), dp(20), 0);
+        for (int i = 0; i < names.length; i++) {
+            final int idx = i;
+            android.widget.CheckBox cb = new android.widget.CheckBox(this);
+            cb.setText(names[i]);
+            cb.setChecked(true);
+            cb.setOnCheckedChangeListener((b, c) -> checked[idx] = c);
+            box.addView(cb);
+        }
+        TextView catLabel = new TextView(this);
+        catLabel.setText("Categoría de la app");
+        catLabel.setPadding(0, dp(12), 0, 0);
+        box.addView(catLabel);
+        final android.widget.Spinner spinner = new android.widget.Spinner(this);
+        spinner.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, catNames));
+        spinner.setSelection(1); // Juego, like before
+        box.addView(spinner);
+
         new AlertDialog.Builder(this)
                 .setTitle(app.label)
-                .setMultiChoiceItems(names, checked, (d, which, isChecked) -> checked[which] = isChecked)
-                .setPositiveButton("Parchear e instalar", (d, which) -> patchAndInstall(app, checked.clone()))
+                .setView(box)
+                .setPositiveButton("Parchear e instalar",
+                        (d, which) -> patchAndInstall(app, checked.clone(), catValues[spinner.getSelectedItemPosition()]))
                 .setNegativeButton("Cancelar", null)
                 .show();
     }
 
-    private void patchAndInstall(final AppEntry app, final boolean[] opt) {
+    private void patchAndInstall(final AppEntry app, final boolean[] opt, final int category) {
         if (!ensureInstallPermission()) return;
         exec.execute(() -> {
             File out = new File(getCacheDir(), "patched/" + app.pkg);
@@ -245,8 +270,9 @@ public class MainActivity extends Activity {
                 cfg.label = app.label + " (AA)";
                 cfg.injectCarLauncher = opt[0];
                 cfg.injectDistractionOptimized = opt[1];
-                cfg.injectGameCategory = opt[2];
-                cfg.makeResizeable = opt[3];
+                cfg.injectGameCategory = category >= 0;
+                cfg.appCategory = Math.max(category, 0);
+                cfg.makeResizeable = opt[2];
 
                 setStatus("Preparando la clave de firma…");
                 Keys.Identity id = Keys.loadOrCreate(new File(getFilesDir(), "patcher.p12"),
