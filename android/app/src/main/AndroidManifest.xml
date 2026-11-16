@@ -10,7 +10,7 @@
     <application
         android:allowBackup="false"
         android:label="AA Patcher"
-        android:theme="@android:style/Theme.Material.Light.DarkActionBar">
+        android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
         <activity
             android:name=".MainActivity"
